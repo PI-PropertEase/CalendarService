@@ -35,6 +35,7 @@ async def consume_wrappers_message(incoming_message):
                 case MessageType.RESERVATION_CREATE:
                     print("incoming message", incoming_message)
                     reservation = from_reservation_create(from_json(incoming_message.body))
+                    print(reservation)
                     create_reservation(db, reservation=reservation)
                 case MessageType.RESERVATION_UPDATE:
                     pass

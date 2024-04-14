@@ -1,12 +1,20 @@
 import firebase_admin
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Depends
 from contextlib import asynccontextmanager
 
 from firebase_admin import credentials
+from sqlalchemy.orm import Session
 
+from CalendarService import models
+from CalendarService.crud import create_reservation
+from CalendarService.database import engine
+from CalendarService.dependencies import get_db
 from CalendarService.messaging_operations import channel, consume
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
+
+from CalendarService.models import EventStatus
+from CalendarService.schemas import Reservation
 
 
 @asynccontextmanager
@@ -18,6 +26,7 @@ async def lifespan(app: FastAPI):
 
 cred = credentials.Certificate(".secret.json")
 firebase_admin.initialize_app(cred)
+models.Base.metadata.create_all(bind=engine)
 app = FastAPI(lifespan=lifespan)
 
 # CORS setup
@@ -34,3 +43,9 @@ app.add_middleware(
          response_description="Return HTTP Status Code 200 (OK)", status_code=status.HTTP_200_OK)
 def get_health():
     return {"status": "ok"}
+
+
+# TODO remove this later - testing purposes
+@app.post("/test")
+def post_test(reservation: Reservation, db: Session = Depends(get_db)):
+    create_reservation(db, reservation)
