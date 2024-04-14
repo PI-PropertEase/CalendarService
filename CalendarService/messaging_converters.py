@@ -10,7 +10,7 @@ def from_reservation_create(message: BaseMessage):
         begin_datetime=body["begin_datetime"],
         end_datetime=body["end_datetime"],
         status=body["status"],
-        service="zooking",
+        service=body["service"],
         client_name=body["client_name"],
         client_phone=body["client_phone"],
         cost=body["cost"]

@@ -45,7 +45,7 @@ def get_health():
     return {"status": "ok"}
 
 
-# TODO remove this later - testing purposes
-@app.post("/test")
-def post_test(reservation: Reservation, db: Session = Depends(get_db)):
-    create_reservation(db, reservation)
+#
+# @app.post("/test")
+# def post_test(reservation: Reservation, db: Session = Depends(get_db)):
+#     create_reservation(db, reservation)
