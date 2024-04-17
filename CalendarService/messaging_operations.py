@@ -15,7 +15,7 @@ channel.close()  # don't use the channel from this file, we need to use an async
 
 
 async def consume(loop):
-    connection = await connect_robust(host="localhost", loop=loop)
+    connection = await connect_robust(host="rabbit_mq", loop=loop)
     channel = await connection.channel()
 
     wrappers_queue = await channel.declare_queue(WRAPPER_TO_CALENDAR_QUEUE, durable=True)
