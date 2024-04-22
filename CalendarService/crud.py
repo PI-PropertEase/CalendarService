@@ -12,6 +12,7 @@ def create_reservation(db: Session, reservation: Reservation):
         status=EventStatus(reservation.status.value),
         begin_datetime=reservation.begin_datetime,
         end_datetime=reservation.end_datetime,
+        client_email=reservation.client_email,
         client_name=reservation.client_name,
         client_phone=reservation.client_phone,
         cost=reservation.cost,

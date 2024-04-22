@@ -30,12 +30,20 @@ async def consume(loop):
 async def consume_wrappers_message(incoming_message):
     async with incoming_message.process():
         message = from_json(incoming_message.body)
+        print("\nconsume_wrappers_message", message.__dict__)
         with SessionLocal() as db:
             match message.message_type:
                 case MessageType.RESERVATION_CREATE:
-                    reservation = from_reservation_create(from_json(incoming_message.body))
-                    create_reservation(db, reservation=reservation)
+                    pass
+                    # reservation = from_reservation_create(from_json(incoming_message.body))
+                    # create_reservation(db, reservation=reservation)
                 case MessageType.RESERVATION_UPDATE:
                     pass
                 case MessageType.RESERVATION_DELETE:
                     pass
+                case MessageType.RESERVATION_IMPORT:
+                    body = message.body
+                    service_value = body["service"]
+                    for reservation in body["reservations"]:
+                        create_reservation(db, from_reservation_create(service_value, reservation))
+

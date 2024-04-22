@@ -17,6 +17,9 @@ class EventStatusEnum(str, Enum):
 
 class Service(str, Enum):
     ZOOKING = "zooking"
+    EARTHSTAYIN = "earthstayin"
+    CLICKANDGO = "clickandgo"
+
 
 
 class Event(BaseModel):
@@ -29,6 +32,7 @@ class Event(BaseModel):
 class Reservation(Event):
     status: EventStatusEnum
     service: Service
+    client_email: EmailStr
     client_name: str
     client_phone: PhoneNumber
     cost: float

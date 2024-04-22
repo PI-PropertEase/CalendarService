@@ -5,6 +5,8 @@ from .database import Base
 
 class Service(EnumType):
     ZOOKING = "zooking"
+    EARTHSTAYIN = "earthstayin"
+    CLICKANDGO = "clickandgo"
 
 
 class EventStatus(EnumType):
@@ -13,7 +15,7 @@ class EventStatus(EnumType):
 
 
 class Event(Base):
-    __tablename__ = "events"
+    __abstract__ = True
 
     id = Column(Integer, primary_key=True)
     property_id = Column(Integer, index=True)
@@ -23,8 +25,13 @@ class Event(Base):
 
 
 class Reservation(Event):
-    service = Column(Enum(Service))
+    __tablename__ = "reservations"
+
+    client_email = Column(String) # TODO VER SE NÃO É EMAIL
     client_name = Column(String)
-    client_phone = Column(String) #TODO change to phone number if possible
+    client_phone = Column(String) #TODO change to phone number type if possible
     cost = Column(Float)
+    service = Column(Enum(Service))
+
+
 

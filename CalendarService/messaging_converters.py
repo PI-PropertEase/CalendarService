@@ -1,17 +1,18 @@
-from CalendarService.schemas import Reservation
+from CalendarService.schemas import Reservation, Service
 from ProjectUtils.MessagingService.schemas import BaseMessage
 
 
-def from_reservation_create(message: BaseMessage):
-    body = message.body
+def from_reservation_create(service_value: str, reservation_dict: dict):
+    print("reservation_dict", reservation_dict)
     return Reservation(
-        id=body["id"],
-        property_id=body["property_id"],
-        begin_datetime=body["begin_datetime"],
-        end_datetime=body["end_datetime"],
-        status=body["status"],
-        service=body["service"],
-        client_name=body["client_name"],
-        client_phone=body["client_phone"],
-        cost=body["cost"]
+        id=reservation_dict["_id"],
+        property_id=reservation_dict["property_id"],
+        begin_datetime=reservation_dict["begin_datetime"],
+        end_datetime=reservation_dict["end_datetime"],
+        status=reservation_dict["status"],
+        service=Service(service_value),
+        client_email=reservation_dict["client_email"],
+        client_name=reservation_dict["client_name"],
+        client_phone=reservation_dict["client_phone"],
+        cost=reservation_dict["cost"]
     )
