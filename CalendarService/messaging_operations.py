@@ -1,6 +1,6 @@
 from aio_pika import connect_robust
 
-from CalendarService.crud import create_reservation
+from CalendarService.crud import create_reservation, there_is_overlapping_events
 from CalendarService.database import SessionLocal
 from CalendarService.messaging_converters import from_reservation_create
 from ProjectUtils.MessagingService.queue_definitions import (
@@ -9,6 +9,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     WRAPPER_TO_CALENDAR_QUEUE, WRAPPER_TO_CALENDAR_ROUTING_KEY,
 )
 from ProjectUtils.MessagingService.schemas import from_json, MessageType
+from sqlalchemy.orm import Session
 
 # TODO: fix this in the future
 channel.close()  # don't use the channel from this file, we need to use an async channel
@@ -43,7 +44,12 @@ async def consume_wrappers_message(incoming_message):
                     pass
                 case MessageType.RESERVATION_IMPORT:
                     body = message.body
-                    service_value = body["service"]
-                    for reservation in body["reservations"]:
-                        create_reservation(db, from_reservation_create(service_value, reservation))
+                    import_reservations(db, body["service"], body["reservations"])
+
+
+def import_reservations(db: Session, service_value: str, reservations):
+    for reservation in reservations:
+        reservation_schema = from_reservation_create(service_value, reservation)
+        print(there_is_overlapping_events(db, reservation_schema))
+        # reservation_model = create_reservation(db, )
 
