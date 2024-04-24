@@ -3,18 +3,17 @@ from fastapi import FastAPI, HTTPException, status, Depends
 from contextlib import asynccontextmanager
 
 from firebase_admin import credentials
-from sqlalchemy.orm import Session
+from pydantic import EmailStr
 
 from CalendarService import models
-from CalendarService.crud import create_reservation
+from CalendarService.crud import create_reservation, get_events_by_owner_email
 from CalendarService.database import engine
 from CalendarService.dependencies import get_db
 from CalendarService.messaging_operations import channel, consume
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 
-from CalendarService.models import EventStatus
-from CalendarService.schemas import Reservation
+from CalendarService.schemas import Reservation, UniformEvent
 
 
 @asynccontextmanager
@@ -45,7 +44,7 @@ def get_health():
     return {"status": "ok"}
 
 
-#
-# @app.post("/test")
-# def post_test(reservation: Reservation, db: Session = Depends(get_db)):
-#     create_reservation(db, reservation)
+@app.get("/events", tags=["reservations"], response_model=list[UniformEvent])
+def tests(db = Depends(get_db)):
+    # TODO change this later to use the email from the token
+    return get_events_by_owner_email(db, "alicez@gmail.com")
