@@ -25,20 +25,26 @@ def create_reservation(db: Session, reservation: Reservation):
 
 
 def there_is_overlapping_events(db: Session, new_event: Event):
-    return db.query(models.Event).filter(and_(
-        or_(
-            and_(
-                models.Event.begin_datetime <= new_event.begin_datetime,
-                new_event.begin_datetime < models.Event.end_datetime
-            ),
-            and_(
-                models.Event.begin_datetime < new_event.end_datetime,
-                new_event.end_datetime <= models.Event.end_datetime,
+    return db.query(models.Event).filter(
+        and_(
+            models.Event.owner_email == new_event.owner_email,
+            models.Event.property_id == new_event.property_id,
+            or_(
+                and_(
+                    models.Event.begin_datetime <= new_event.begin_datetime,
+                    new_event.begin_datetime < models.Event.end_datetime
+                ),
+                and_(
+                    models.Event.begin_datetime < new_event.end_datetime,
+                    new_event.end_datetime <= models.Event.end_datetime,
+                ),
+                and_(
+                    models.Event.begin_datetime != new_event.end_datetime,
+                    new_event.end_datetime != models.Event.end_datetime,
+                )
+                # check if they are all different
             )
-        ),
-        models.Event.owner_email == new_event.owner_email,
-        models.Event.property_id == new_event.property_id
-    )).count() > 0
+        )).count() > 0
 
 def get_events_by_owner_email(db: Session, owner_email: str):
     # include columns for all mapped subclasses
