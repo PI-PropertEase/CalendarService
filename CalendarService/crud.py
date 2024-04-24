@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, with_polymorphic
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from CalendarService import models
 from CalendarService.schemas import Reservation, Event
@@ -25,10 +25,19 @@ def create_reservation(db: Session, reservation: Reservation):
 
 
 def there_is_overlapping_events(db: Session, new_event: Event):
-    print(db.query(models.Reservation).filter(new_event.begin_datetime < models.Reservation.end_datetime).count())
-    return db.query(models.Event).filter(or_(
-        models.Event.begin_datetime <= new_event.begin_datetime < models.Event.end_datetime,
-        models.Event.begin_datetime < new_event.end_datetime <= models.Event.end_datetime,
+    return db.query(models.Event).filter(and_(
+        or_(
+            and_(
+                models.Event.begin_datetime <= new_event.begin_datetime,
+                new_event.begin_datetime < models.Event.end_datetime
+            ),
+            and_(
+                models.Event.begin_datetime < new_event.end_datetime,
+                new_event.end_datetime <= models.Event.end_datetime,
+            )
+        ),
+        models.Event.owner_email == new_event.owner_email,
+        models.Event.property_id == new_event.property_id
     )).count() > 0
 
 def get_events_by_owner_email(db: Session, owner_email: str):

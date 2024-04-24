@@ -50,6 +50,8 @@ async def consume_wrappers_message(incoming_message):
 def import_reservations(db: Session, service_value: str, reservations):
     for reservation in reservations:
         reservation_schema = from_reservation_create(service_value, reservation)
-        # print(there_is_overlapping_events(db, reservation_schema))
-        reservation_model = create_reservation(db, reservation_schema)
+        if there_is_overlapping_events(db, reservation_schema):
+            print("overlapping event", reservation_schema.__dict__)
+            continue
+        create_reservation(db, reservation_schema)
 

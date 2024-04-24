@@ -3,7 +3,6 @@ from ProjectUtils.MessagingService.schemas import BaseMessage
 
 
 def from_reservation_create(service_value: str, reservation_dict: dict):
-    print("reservation_dict", reservation_dict)
     return Reservation(
         id=reservation_dict["_id"],
         property_id=reservation_dict["property_id"],
