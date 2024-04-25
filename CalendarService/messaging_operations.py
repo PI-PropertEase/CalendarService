@@ -63,5 +63,15 @@ async def import_reservations(db: Session, service_value: str, reservations):
                 message=to_json_aoi_bytes(MessageFactory.create_overlap_import_reservation_message(reservation))
             )
         else:
-            create_reservation(db, reservation_schema)
+            if reservation_schema.reservation_status in ["confirmed", "pending"]:
+                # confirmed -> already confirmed on external service and are now just importing it
+                # pending   -> external service awaiting CalendarService confirmation
+                if reservation_schema.reservation_status == "pending":
+                    reservation_schema.reservation_status = "confirmed"
+                    # TODO post confirm reservation message
+                create_reservation(db, reservation_schema)
+            else:
+                # canceled -> TODO don't know yet
+                pass
+
 

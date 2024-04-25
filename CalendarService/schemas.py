@@ -26,10 +26,15 @@ class Event(BaseModel):
     begin_datetime: datetime
     end_datetime: datetime
 
+class ReservationStatus(str, Enum):
+    CONFIRMED = "confirmed"
+    PENDING = "pending"
+    CANCELED = "canceled"
+
 
 class Reservation(Event):
     service: Service
-    confirmed: bool
+    reservation_status: ReservationStatus
     client_email: EmailStr
     client_name: str
     client_phone: PhoneNumber

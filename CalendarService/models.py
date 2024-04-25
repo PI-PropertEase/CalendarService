@@ -24,6 +24,12 @@ class Event(Base):
     type = Column(String)
 
 
+class ReservationStatus(EnumType):
+    CONFIRMED = "confirmed"
+    PENDING = "pending"
+    CANCELED = "canceled"
+
+
 class Reservation(Event):
     __tablename__ = "reservation"
     __mapper_args__ = {
@@ -31,7 +37,7 @@ class Reservation(Event):
     }
 
     id = Column(Integer, ForeignKey("event.id"), primary_key=True)
-    confirmed = Column(Boolean)
+    reservation_status = Column(Enum(ReservationStatus))
     client_email = Column(String) # TODO VER SE NÃO É EMAIL
     client_name = Column(String)
     client_phone = Column(String) #TODO change to phone number type if possible
