@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Float, ForeignKey, Boolean
 from enum import Enum as EnumType
 from .database import Base
 
@@ -31,6 +31,7 @@ class Reservation(Event):
     }
 
     id = Column(Integer, ForeignKey("event.id"), primary_key=True)
+    confirmed = Column(Boolean)
     client_email = Column(String) # TODO VER SE NÃO É EMAIL
     client_name = Column(String)
     client_phone = Column(String) #TODO change to phone number type if possible

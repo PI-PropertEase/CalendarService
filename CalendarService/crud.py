@@ -16,7 +16,8 @@ def create_reservation(db: Session, reservation: Reservation):
         client_name=reservation.client_name,
         client_phone=reservation.client_phone,
         cost=reservation.cost,
-        service=models.Service(reservation.service.value)
+        confirmed=reservation.confirmed,
+        service=models.Service(reservation.service.value),
     )
     db.add(db_reservation)
     db.commit()

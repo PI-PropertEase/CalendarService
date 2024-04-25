@@ -29,6 +29,7 @@ class Event(BaseModel):
 
 class Reservation(Event):
     service: Service
+    confirmed: bool
     client_email: EmailStr
     client_name: str
     client_phone: PhoneNumber

@@ -13,5 +13,6 @@ def from_reservation_create(service_value: str, reservation_dict: dict):
         client_email=reservation_dict["client_email"],
         client_name=reservation_dict["client_name"],
         client_phone=reservation_dict["client_phone"],
-        cost=reservation_dict["cost"]
+        cost=reservation_dict["cost"],
+        confirmed=reservation_dict["confirmed"]
     )
