@@ -1,6 +1,6 @@
 from aio_pika import connect_robust, ExchangeType
 
-from CalendarService.crud import create_reservation, there_is_overlapping_events
+from CalendarService.crud import create_reservation, there_is_overlapping_events, get_reservation_by_id, update_reservation_status
 from CalendarService.database import SessionLocal
 from CalendarService.messaging_converters import from_reservation_create
 from ProjectUtils.MessagingService.queue_definitions import (
@@ -10,6 +10,8 @@ from ProjectUtils.MessagingService.queue_definitions import (
 )
 from ProjectUtils.MessagingService.schemas import from_json, MessageType, MessageFactory, to_json_aoi_bytes
 from sqlalchemy.orm import Session
+
+from CalendarService import models
 
 # TODO: fix this in the future
 channel.close()  # don't use the channel from this file, we need to use an async channel
@@ -54,24 +56,34 @@ async def consume_wrappers_message(incoming_message):
 
 
 async def import_reservations(db: Session, service_value: str, reservations):
+    # reservations -> apenas reservas novas ou canceladas
     for reservation in reservations:
         reservation_schema = from_reservation_create(service_value, reservation)
-        if there_is_overlapping_events(db, reservation_schema):
-            print("overlapping event", reservation_schema.__dict__)
-            await async_exchange.publish(
-                routing_key=routing_key_by_service[service_value],
-                message=to_json_aoi_bytes(MessageFactory.create_overlap_import_reservation_message(reservation))
-            )
+        if reservation_schema.reservation_status == "canceled":
+            # canceled -> either cancelling existing reservation or importing canceled reservation
+            reservation_with_same_id = get_reservation_by_id(db, reservation_schema.id)
+            if reservation_with_same_id is not None:
+                print("before_update", reservation_with_same_id.__dict__)
+                print("after_cancelled", update_reservation_status(db, reservation_with_same_id, models.ReservationStatus.CANCELED))
+            else:
+                reservation_schema.reservation_status = "canceled"
+                create_reservation(db, reservation_schema)
         else:
-            if reservation_schema.reservation_status in ["confirmed", "pending"]:
-                # confirmed -> already confirmed on external service and are now just importing it
-                # pending   -> external service awaiting CalendarService confirmation
+            # confirmed -> already confirmed on external service and are now just importing it
+            # pending   -> external service awaiting CalendarService confirmation
+            if there_is_overlapping_events(db, reservation_schema):
+                print("overlapping event", reservation_schema.__dict__)
+                await async_exchange.publish(
+                    routing_key=routing_key_by_service[service_value],
+                    message=to_json_aoi_bytes(MessageFactory.create_overlap_import_reservation_message(reservation))
+                )
+            else:
                 if reservation_schema.reservation_status == "pending":
                     reservation_schema.reservation_status = "confirmed"
-                    # TODO post confirm reservation message
+                    await async_exchange.publish(
+                        routing_key=routing_key_by_service[service_value],
+                        message=to_json_aoi_bytes(MessageFactory.create_confirm_reservation_message(reservation))
+                    )
                 create_reservation(db, reservation_schema)
-            else:
-                # canceled -> TODO don't know yet
-                pass
 
 
