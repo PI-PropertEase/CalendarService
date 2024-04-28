@@ -44,10 +44,6 @@ def get_health():
     return {"status": "ok"}
 
 
-@app.get("/events", tags=["reservations"], response_model=list[UniformEvent])
-def read_owner_events(db = Depends(get_db)):
-    # TODO change this later to use the email from the token
-    return get_events_by_owner_email(db, "alicez@gmail.com")
 
 
 
