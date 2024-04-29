@@ -1,6 +1,6 @@
 from aio_pika import connect_robust, ExchangeType
 
-from CalendarService.crud import create_reservation, there_is_overlapping_events, get_reservation_by_external_id, update_reservation_status
+from CalendarService.crud import create_reservation, there_are_overlapping_events, get_reservation_by_external_id, update_reservation_status
 from CalendarService.database import SessionLocal
 from CalendarService.messaging_converters import from_reservation_create
 from ProjectUtils.MessagingService.queue_definitions import (
@@ -71,7 +71,7 @@ async def import_reservations(db: Session, service_value: str, reservations):
         else:
             # confirmed -> already confirmed on external service and are now just importing it
             # pending   -> external service awaiting CalendarService confirmation
-            if there_is_overlapping_events(db, reservation_schema):
+            if there_are_overlapping_events(db, reservation_schema):
                 print("overlapping event", reservation_schema.__dict__)
                 await async_exchange.publish(
                     routing_key=routing_key_by_service[service_value],

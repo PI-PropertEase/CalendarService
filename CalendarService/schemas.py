@@ -7,6 +7,10 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 
 PhoneNumber.phone_format = 'E164'  # 'INTERNATIONAL'
 
+class Base(BaseModel):
+    class Config:
+        extra = "allow"
+
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -37,7 +41,7 @@ class ExternalEvent(BaseEvent):
 class Cleaning(InternalEvent):
     pass
 
-class Maintenance(BaseModel):
+class Maintenance(InternalEvent):
     pass
 
 

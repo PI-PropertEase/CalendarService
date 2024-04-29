@@ -87,3 +87,4 @@ class Reservation(ExternalEvent):
     service = Column(Enum(Service))
 
 
+management_event_types = [management_event.__tablename__ for management_event in ManagementEvent.__subclasses__()]
