@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session, with_polymorphic
 from sqlalchemy import or_, and_
 
 from CalendarService import models
-from CalendarService.schemas import Reservation, Event
+from CalendarService.schemas import Reservation, Event, BaseEvent, Cleaning
 
 
 def create_reservation(db: Session, reservation: Reservation):
@@ -26,6 +26,22 @@ def create_reservation(db: Session, reservation: Reservation):
     return db_reservation
 
 
+def create_cleaning(db: Session, cleaning_event: Cleaning):
+    db_event = models.Cleaning(
+        property_id=cleaning_event.property_id,
+        owner_email=cleaning_event.owner_email,
+        begin_datetime=cleaning_event.begin_datetime,
+        end_datetime=cleaning_event.end_datetime,
+    )
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    return db_event
+
+def get_cleaning_by_id(db: Session, cleaning_id: int):
+    return db.query(models.Cleaning).get(cleaning_id)
+
+
 def get_reservation_by_id(db: Session, reservation_id: int):
     return db.query(models.Reservation).filter(models.Reservation.id == reservation_id).first()
 
@@ -39,7 +55,7 @@ def update_reservation_status(db: Session, reservation: models.Reservation, rese
     return reservation
 
 
-def there_is_overlapping_events(db: Session, new_event: Event):
+def there_is_overlapping_events(db: Session, new_event: BaseEvent):
     # reservations = [reservation for reservation in db.query(models.Event).all()]
     # print(reservations)
     # print("new_event", new_event)
@@ -54,25 +70,25 @@ def there_is_overlapping_events(db: Session, new_event: Event):
     #     print("new_event.begin_datetime < reservation.end_datetime", new_event.begin_datetime < reservation.end_datetime)
     #     print("new_event.end_datetime > reservation.end_datetime", new_event.end_datetime > reservation.end_datetime)
     #     print()
-    return db.query(models.Event).filter(
+    return db.query(models.BaseEvent).filter(
         and_(
-            models.Event.owner_email == new_event.owner_email,
-            models.Event.property_id == new_event.property_id,
+            models.BaseEvent.owner_email == new_event.owner_email,
+            models.BaseEvent.property_id == new_event.property_id,
             or_(
                 and_(
                     # fully inside
-                    new_event.begin_datetime >= models.Event.begin_datetime,
-                    new_event.end_datetime <= models.Event.end_datetime
+                    new_event.begin_datetime >= models.BaseEvent.begin_datetime,
+                    new_event.end_datetime <= models.BaseEvent.end_datetime
                 ),
                 and_(
                     # inside to the left
-                    new_event.begin_datetime < models.Event.begin_datetime,
-                    new_event.end_datetime > models.Event.begin_datetime
+                    new_event.begin_datetime < models.BaseEvent.begin_datetime,
+                    new_event.end_datetime > models.BaseEvent.begin_datetime
                 ),
                 and_(
                     # inside to the right
-                    new_event.begin_datetime < models.Event.end_datetime,
-                    new_event.end_datetime > models.Event.end_datetime
+                    new_event.begin_datetime < models.BaseEvent.end_datetime,
+                    new_event.end_datetime > models.BaseEvent.end_datetime
                 )
             )
         )).count() > 0
@@ -80,5 +96,5 @@ def there_is_overlapping_events(db: Session, new_event: Event):
 
 def get_events_by_owner_email(db: Session, owner_email: str):
     # include columns for all mapped subclasses
-    model = with_polymorphic(models.Event, [models.Reservation])
-    return db.query(model).filter(models.Event.owner_email == owner_email).all()
+    model = with_polymorphic(models.BaseEvent, [models.Reservation])
+    return db.query(model).filter(models.BaseEvent.owner_email == owner_email).all()

@@ -18,6 +18,13 @@ class Service(str, Enum):
     CLICKANDGO = "clickandgo"
 
 
+class BaseEvent(BaseModel):
+    id: int
+    property_id: int
+    owner_email: EmailStr
+    begin_datetime: datetime
+    end_datetime: datetime
+
 
 class Event(BaseModel):
     id: int
@@ -39,6 +46,18 @@ class Reservation(Event):
     client_name: str
     client_phone: PhoneNumber
     cost: float
+
+class Cleaning(BaseModel):
+    property_id: int
+    owner_email: EmailStr
+    begin_datetime: datetime
+    end_datetime: datetime
+
+class Maintenance(BaseModel):
+    property_id: int
+    owner_email: EmailStr
+    begin_datetime: datetime
+    end_datetime: datetime
 
 
 class UniformEvent(BaseModel):
