@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session, with_polymorphic
 from sqlalchemy import or_, and_
 
 from CalendarService import models
-from CalendarService.schemas import Reservation, Event, BaseEvent, Cleaning
+from CalendarService.schemas import Reservation, BaseEvent, Cleaning
 
 
 def create_cleaning(db: Session, cleaning_event: Cleaning):
@@ -19,7 +19,7 @@ def create_cleaning(db: Session, cleaning_event: Cleaning):
 
 
 def create_reservation(db: Session, reservation: Reservation):
-    print(reservation.__dict__)create_reservation
+    print(reservation.__dict__)
     db_reservation = models.Reservation(
         external_id=reservation.external_id,
         property_id=reservation.property_id,
@@ -56,7 +56,7 @@ def update_reservation_status(db: Session, reservation: models.Reservation, rese
 
 
 def there_is_overlapping_events(db: Session, new_event: BaseEvent):
-    # reservations = [reservation for reservation in db.query(models.Event).all()]
+    # reservations = [reservation for reservation in db.query(models.BaseEvent).all()]
     # print(reservations)
     # print("new_event", new_event)
     # for reservation in reservations:
