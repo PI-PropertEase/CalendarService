@@ -19,19 +19,27 @@ class Service(str, Enum):
 
 
 class BaseEvent(BaseModel):
-    id: int
     property_id: int
     owner_email: EmailStr
     begin_datetime: datetime
     end_datetime: datetime
 
 
-class Event(BaseModel):
-    id: int
-    property_id: int
-    owner_email: EmailStr
-    begin_datetime: datetime
-    end_datetime: datetime
+class InternalEvent(BaseEvent):
+    pass
+
+
+class ExternalEvent(BaseEvent):
+    # generated with a certain id the on website wrappers
+    external_id: int
+
+
+class Cleaning(InternalEvent):
+    pass
+
+class Maintenance(BaseModel):
+    pass
+
 
 class ReservationStatus(str, Enum):
     CONFIRMED = "confirmed"
@@ -39,7 +47,7 @@ class ReservationStatus(str, Enum):
     CANCELED = "canceled"
 
 
-class Reservation(Event):
+class Reservation(ExternalEvent):
     service: Service
     reservation_status: ReservationStatus
     client_email: EmailStr
@@ -47,21 +55,11 @@ class Reservation(Event):
     client_phone: PhoneNumber
     cost: float
 
-class Cleaning(BaseModel):
-    property_id: int
-    owner_email: EmailStr
-    begin_datetime: datetime
-    end_datetime: datetime
-
-class Maintenance(BaseModel):
-    property_id: int
-    owner_email: EmailStr
-    begin_datetime: datetime
-    end_datetime: datetime
-
 
 class UniformEvent(BaseModel):
-    id: int
+    # schema to return when asked for all events
+    # particular fields of certain events have default value None
+    id: int                                 # internal_id
     property_id: int
     owner_email: EmailStr
     begin_datetime: datetime

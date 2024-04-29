@@ -1,6 +1,6 @@
 from aio_pika import connect_robust, ExchangeType
 
-from CalendarService.crud import create_reservation, there_is_overlapping_events, get_reservation_by_id, update_reservation_status
+from CalendarService.crud import create_reservation, there_is_overlapping_events, get_reservation_by_external_id, update_reservation_status
 from CalendarService.database import SessionLocal
 from CalendarService.messaging_converters import from_reservation_create
 from ProjectUtils.MessagingService.queue_definitions import (
@@ -61,7 +61,7 @@ async def import_reservations(db: Session, service_value: str, reservations):
         reservation_schema = from_reservation_create(service_value, reservation)
         if reservation_schema.reservation_status == "canceled":
             # canceled -> either cancelling existing reservation or importing canceled reservation
-            reservation_with_same_id = get_reservation_by_id(db, reservation_schema.id)
+            reservation_with_same_id = get_reservation_by_external_id(db, reservation_schema.external_id)
             if reservation_with_same_id is not None:
                 print("before_update", reservation_with_same_id.__dict__)
                 print("after_cancelled", update_reservation_status(db, reservation_with_same_id, models.ReservationStatus.CANCELED))

@@ -5,10 +5,23 @@ from CalendarService import models
 from CalendarService.schemas import Reservation, Event, BaseEvent, Cleaning
 
 
+def create_cleaning(db: Session, cleaning_event: Cleaning):
+    db_event = models.Cleaning(
+        property_id=cleaning_event.property_id,
+        owner_email=cleaning_event.owner_email,
+        begin_datetime=cleaning_event.begin_datetime,
+        end_datetime=cleaning_event.end_datetime,
+    )
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    return db_event
+
+
 def create_reservation(db: Session, reservation: Reservation):
-    print(reservation.__dict__)
+    print(reservation.__dict__)create_reservation
     db_reservation = models.Reservation(
-        id=reservation.id,
+        external_id=reservation.external_id,
         property_id=reservation.property_id,
         owner_email=reservation.owner_email,
         begin_datetime=reservation.begin_datetime,
@@ -25,25 +38,12 @@ def create_reservation(db: Session, reservation: Reservation):
     db.refresh(db_reservation)
     return db_reservation
 
-
-def create_cleaning(db: Session, cleaning_event: Cleaning):
-    db_event = models.Cleaning(
-        property_id=cleaning_event.property_id,
-        owner_email=cleaning_event.owner_email,
-        begin_datetime=cleaning_event.begin_datetime,
-        end_datetime=cleaning_event.end_datetime,
-    )
-    db.add(db_event)
-    db.commit()
-    db.refresh(db_event)
-    return db_event
-
 def get_cleaning_by_id(db: Session, cleaning_id: int):
     return db.query(models.Cleaning).get(cleaning_id)
 
 
-def get_reservation_by_id(db: Session, reservation_id: int):
-    return db.query(models.Reservation).filter(models.Reservation.id == reservation_id).first()
+def get_reservation_by_external_id(db: Session, reservation_external_id: int):
+    return db.query(models.Reservation).filter(models.Reservation.external_id == reservation_external_id).first()
 
 
 def update_reservation_status(db: Session, reservation: models.Reservation, reservation_status: models.ReservationStatus):
