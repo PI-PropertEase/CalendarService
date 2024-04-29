@@ -55,7 +55,7 @@ class Maintenance(ManagementEvent):
     __mapper_args__ = {
         "polymorphic_identity": "maintenance",
     }
-    management_event_id = Column(Integer, ForeignKey("management_event.id"), primary_key=True)
+    id = Column(Integer, ForeignKey("management_event.id"), primary_key=True)
 
 
 class Cleaning(ManagementEvent):
@@ -63,7 +63,7 @@ class Cleaning(ManagementEvent):
     __mapper_args__ = {
         "polymorphic_identity": "cleaning",
     }
-    management_event_id = Column(Integer, ForeignKey("management_event.id"), primary_key=True)
+    id = Column(Integer, ForeignKey("management_event.id"), primary_key=True)
 
 
 class ReservationStatus(EnumType):

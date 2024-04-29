@@ -9,6 +9,16 @@ def get_events_by_owner_email(db: Session, owner_email: str):
     model = with_polymorphic(models.BaseEvent, "*")
     return db.query(model).filter(models.BaseEvent.owner_email == owner_email).all()
 
+def get_management_event_by_owner_email_and_event_id(db: Session, ManagementEventClass, owner_email: str, management_event_id: int):
+    return db.query(ManagementEventClass).filter(and_(
+        models.ManagementEvent.owner_email == owner_email, models.ManagementEvent.id == management_event_id
+    )).first()
+
+
+def delete_management_event(db: Session, management_event: models.ManagementEvent):
+    db.delete(management_event)
+    db.commit()
+
 
 def create_cleaning(db: Session, cleaning_event: Cleaning):
     db_event = models.Cleaning(
@@ -39,6 +49,9 @@ def create_maintenance(db: Session, maintenance_event: Cleaning):
 
 def get_maintenance_by_id(db: Session, maintenance_id: int):
     return db.query(models.Maintenance).get(maintenance_id)
+
+
+
 
 
 def create_reservation(db: Session, reservation: Reservation):
