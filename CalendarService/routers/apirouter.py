@@ -15,6 +15,11 @@ from pydantic import EmailStr
 api_router = APIRouter(prefix="/events", tags=["events"], dependencies=[Depends(get_user)])
 
 
+@api_router.get("/management/types", response_model=list[str], status_code=status.HTTP_200_OK)
+async def read_management_event_types():
+    return models.management_event_types
+
+
 @api_router.get("", response_model=list[UniformEventWithId], status_code=status.HTTP_200_OK)
 async def read_events_by_owner_email(user: UserBase = Depends(get_user), db: Session = Depends(get_db)):
     for event in crud.get_all_events_by_owner_email(db, user.email):
@@ -31,11 +36,6 @@ async def read_specific_events_by_owner_email(
         db: Session = Depends(get_db)
 ):
     return crud.get_specific_events_by_owner_email(db, owner_email, event_model)
-
-
-@api_router.get("/management/types", response_model=list[str], status_code=status.HTTP_200_OK)
-async def read_management_event_types():
-    return models.management_event_types
 
 
 @api_router.post("/management/cleaning", response_model=CleaningWithId, status_code=status.HTTP_201_CREATED)
