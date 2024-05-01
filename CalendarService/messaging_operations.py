@@ -16,6 +16,7 @@ from CalendarService import models
 # TODO: fix this in the future
 channel.close()  # don't use the channel from this file, we need to use an async channel
 
+async_exchange = None
 
 async def consume(loop):
     global async_exchange
