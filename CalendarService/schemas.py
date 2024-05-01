@@ -7,6 +7,9 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 
 PhoneNumber.phone_format = 'E164'  # 'INTERNATIONAL'
 
+"""
+Receiving Schemas - in API endpoints or messaging
+"""
 class Base(BaseModel):
     class Config:
         extra = "allow"
@@ -34,15 +37,26 @@ class InternalEvent(BaseEvent):
 
 
 class ExternalEvent(BaseEvent):
-    # generated with a certain id the on website wrappers
-    external_id: int
+    external_id: int        # generated with a certain id the on website wrappers
 
 
 class Cleaning(InternalEvent):
     pass
 
+
+class UpdateCleaning(BaseModel):
+    property_id: Optional[int] = None
+    begin_datetime: Optional[datetime] = None
+    end_datetime: Optional[datetime] = None
+
 class Maintenance(InternalEvent):
     pass
+
+
+class UpdateMaintenance(BaseModel):
+    property_id: Optional[int] = None
+    begin_datetime: Optional[datetime] = None
+    end_datetime: Optional[datetime] = None
 
 
 class ReservationStatus(str, Enum):
@@ -59,11 +73,14 @@ class Reservation(ExternalEvent):
     client_phone: PhoneNumber
     cost: float
 
-
-class UniformEvent(BaseModel):
+"""
+Returning Schemas
+id -> internal id
+"""
+class UniformEventWithId(BaseModel):
     # schema to return when asked for all events
     # particular fields of certain events have default value None
-    id: int                                 # internal_id
+    id: int
     property_id: int
     owner_email: EmailStr
     begin_datetime: datetime
@@ -71,3 +88,24 @@ class UniformEvent(BaseModel):
     type: str
     service: Optional[Service] = None
 
+class BaseEventWithId(BaseModel):
+    id: int
+    property_id: int
+    owner_email: EmailStr
+    begin_datetime: datetime
+    end_datetime: datetime
+    type: str
+
+class ManagementEventWithId(BaseEventWithId):
+    pass
+
+
+class CleaningWithId(ManagementEventWithId):
+    pass
+
+
+class MaintenanceWithId(ManagementEventWithId):
+    pass
+
+class ReservationWithId(BaseEventWithId):
+    pass

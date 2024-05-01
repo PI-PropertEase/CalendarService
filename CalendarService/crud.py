@@ -1,6 +1,8 @@
+from typing import Callable
+
 from sqlalchemy.orm import Session, with_polymorphic
 from sqlalchemy import or_, and_
-
+from sqlalchemy import update
 from CalendarService import models
 from CalendarService.schemas import Reservation, BaseEvent, Cleaning
 
@@ -9,10 +11,21 @@ def get_events_by_owner_email(db: Session, owner_email: str):
     model = with_polymorphic(models.BaseEvent, "*")
     return db.query(model).filter(models.BaseEvent.owner_email == owner_email).all()
 
+def update_event(db: Session, event_to_update: models.BaseEvent, update_parameters: dict):
+    for field_name, field_value in update_parameters.items():
+        setattr(event_to_update, field_name, field_value)
+    db.commit()
+    db.refresh(event_to_update)
+    return event_to_update
+
+
 def get_management_event_by_owner_email_and_event_id(db: Session, ManagementEventClass, owner_email: str, management_event_id: int):
     return db.query(ManagementEventClass).filter(and_(
         models.ManagementEvent.owner_email == owner_email, models.ManagementEvent.id == management_event_id
     )).first()
+
+def get_management_event_by_id(db: Session, ManagementEventClass, management_event_id: int):
+    return db.query(ManagementEventClass).get(management_event_id)
 
 
 def delete_management_event(db: Session, management_event: models.ManagementEvent):
@@ -127,4 +140,44 @@ def there_are_overlapping_events(db: Session, new_event: BaseEvent):
                 )
             )
         )).count() > 0
+
+def there_are_overlapping_events_excluding_updating_event(db: Session, updating_event: BaseEvent):
+    # reservations = [reservation for reservation in db.query(models.BaseEvent).all()]
+    # print(reservations)
+    # print("new_event", new_event)
+    # for reservation in reservations:
+    #     print("reservation", reservation.__dict__)
+    #     print("reservation.owner_email == new_event.owner_email", reservation.owner_email == new_event.owner_email )
+    #     print("reservation.property_id == new_event.property_id", reservation.property_id == new_event.property_id)
+    #     print("new_event.begin_datetime > reservation.begin_datetime", new_event.begin_datetime > reservation.begin_datetime )
+    #     print("new_event.end_datetime < reservation.end_datetime", new_event.end_datetime < reservation.end_datetime )
+    #     print("new_event.begin_datetime < reservation.begin_datetime", new_event.begin_datetime < reservation.begin_datetime)
+    #     print("new_event.end_datetime > reservation.begin_datetime", new_event.end_datetime > reservation.begin_datetime)
+    #     print("new_event.begin_datetime < reservation.end_datetime", new_event.begin_datetime < reservation.end_datetime)
+    #     print("new_event.end_datetime > reservation.end_datetime", new_event.end_datetime > reservation.end_datetime)
+    #     print()
+    return db.query(models.BaseEvent).filter(
+        and_(
+            models.BaseEvent.id != updating_event.id,
+            models.BaseEvent.owner_email == updating_event.owner_email,
+            models.BaseEvent.property_id == updating_event.property_id,
+            or_(
+                and_(
+                    # fully inside
+                    updating_event.begin_datetime >= models.BaseEvent.begin_datetime,
+                    updating_event.end_datetime <= models.BaseEvent.end_datetime
+                ),
+                and_(
+                    # inside to the left
+                    updating_event.begin_datetime < models.BaseEvent.begin_datetime,
+                    updating_event.end_datetime > models.BaseEvent.begin_datetime
+                ),
+                and_(
+                    # inside to the right
+                    updating_event.begin_datetime < models.BaseEvent.end_datetime,
+                    updating_event.end_datetime > models.BaseEvent.end_datetime
+                )
+            )
+        )).count() > 0
+
 

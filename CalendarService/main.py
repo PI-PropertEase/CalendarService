@@ -13,7 +13,7 @@ from CalendarService.messaging_operations import channel, consume
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 
-from CalendarService.schemas import Reservation, UniformEvent
+from CalendarService.schemas import Reservation, UniformEventWithId
 
 from fastapi import APIRouter, Depends
 from CalendarService.apirouter import api_router
