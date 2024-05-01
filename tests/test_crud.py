@@ -1,22 +1,9 @@
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from sqlalchemy.orm import Session
 from CalendarService import models
 from datetime import datetime
 from CalendarService import crud
-
-
-@pytest.fixture
-def test_db():
-    print("Creating in-memory database...")
-    engine = create_engine("sqlite:///:memory:")
-    models.Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db = SessionLocal()
-    yield db
-    print("Cleaning up in-memory database...")
-    models.Base.metadata.create_all(bind=engine)
-
+from fixtures import test_db
 
 def test_get_events_by_owner_email(test_db: Session):
     owner_email = "cool_guy@gmail.com"
