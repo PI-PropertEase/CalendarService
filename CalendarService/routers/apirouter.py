@@ -21,10 +21,8 @@ async def read_management_event_types():
 
 
 @api_router.get("", response_model=list[UniformEventWithId], status_code=status.HTTP_200_OK)
-async def read_events_by_owner_email(user: UserBase = Depends(get_user), db: Session = Depends(get_db)):
-    for event in crud.get_all_events_by_owner_email(db, user.email):
-        print(event.__dict__)
-    return crud.get_all_events_by_owner_email(db, user.email)
+async def read_events_by_owner_email(owner_email: str = Depends(get_user_email), db: Session = Depends(get_db)):
+    return crud.get_all_events_by_owner_email(db, owner_email)
 
 
 @api_router.get("/reservation", response_model=list[ReservationWithId], status_code=status.HTTP_200_OK)
