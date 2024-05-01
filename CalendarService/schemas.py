@@ -10,6 +10,8 @@ PhoneNumber.phone_format = 'E164'  # 'INTERNATIONAL'
 """
 Receiving Schemas - in API endpoints or messaging
 """
+
+
 class Base(BaseModel):
     class Config:
         extra = "allow"
@@ -37,7 +39,7 @@ class InternalEvent(BaseEvent):
 
 
 class ExternalEvent(BaseEvent):
-    external_id: int        # generated with a certain id the on website wrappers
+    external_id: int  # generated with a certain id the on website wrappers
 
 
 class Cleaning(InternalEvent):
@@ -48,6 +50,7 @@ class UpdateCleaning(BaseModel):
     property_id: Optional[int] = None
     begin_datetime: Optional[datetime] = None
     end_datetime: Optional[datetime] = None
+
 
 class Maintenance(InternalEvent):
     pass
@@ -73,10 +76,13 @@ class Reservation(ExternalEvent):
     client_phone: PhoneNumber
     cost: float
 
+
 """
 Returning Schemas
 id -> internal id
 """
+
+
 class UniformEventWithId(BaseModel):
     # schema to return when asked for all events
     # particular fields of certain events have default value None
@@ -88,6 +94,7 @@ class UniformEventWithId(BaseModel):
     type: str
     service: Optional[Service] = None
 
+
 class BaseEventWithId(BaseModel):
     id: int
     property_id: int
@@ -95,6 +102,7 @@ class BaseEventWithId(BaseModel):
     begin_datetime: datetime
     end_datetime: datetime
     type: str
+
 
 class ManagementEventWithId(BaseEventWithId):
     pass
@@ -107,5 +115,11 @@ class CleaningWithId(ManagementEventWithId):
 class MaintenanceWithId(ManagementEventWithId):
     pass
 
+
 class ReservationWithId(BaseEventWithId):
-    pass
+    service: Service
+    reservation_status: ReservationStatus
+    client_email: EmailStr
+    client_name: str
+    client_phone: PhoneNumber
+    cost: float
