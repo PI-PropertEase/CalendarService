@@ -4,12 +4,15 @@ from CalendarService.dependencies import get_user, get_db, get_user_email, get_u
     get_management_event_model, \
     InitializeUpdateEventAccordingToEndpoint, get_event_model
 from CalendarService import crud
+from CalendarService.messaging_operations import propagate_event_to_wrappers
 from CalendarService.schemas import Cleaning, Maintenance, UniformEventWithId, UserBase, UpdateCleaning, \
     BaseEvent, CleaningWithId, MaintenanceWithId, BaseEventWithId, UpdateMaintenance, ReservationWithId
 from sqlalchemy.orm import Session
 from CalendarService import models
 from CalendarService.dependencies import InitializeEventWithOwnerEmail
 from pydantic import EmailStr
+
+from ProjectUtils.MessagingService.schemas import MessageFactory
 
 # deny by default with dependency get_user
 api_router = APIRouter(prefix="/events", tags=["events"], dependencies=[Depends(get_user)])
@@ -48,7 +51,9 @@ async def create_management_event(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"There are overlapping events with the event with begin_datetime {event_data.begin_datetime} "
                    f"and end_datetime {event_data.end_datetime}.")
-    return crud.create_management_event(db, event_data, event_model)
+    db_event = crud.create_management_event(db, event_data, event_model)
+    await propagate_event_to_wrappers(db_event)
+    return db_event
 
 
 @api_router.put("/management/cleaning/{event_id}", response_model=CleaningWithId, status_code=status.HTTP_200_OK)

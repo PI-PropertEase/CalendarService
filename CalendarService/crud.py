@@ -49,16 +49,6 @@ def delete_management_event(db: Session, management_event: models.ManagementEven
     db.commit()
 
 
-def get_cleaning_by_id(db: Session, cleaning_id: int):
-    return db.query(models.Cleaning).get(cleaning_id)
-
-
-
-
-def get_maintenance_by_id(db: Session, maintenance_id: int):
-    return db.query(models.Maintenance).get(maintenance_id)
-
-
 def create_reservation(db: Session, reservation: Reservation):
     print(reservation.__dict__)
     db_reservation = models.Reservation(

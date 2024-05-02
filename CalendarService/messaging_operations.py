@@ -6,7 +6,7 @@ from CalendarService.messaging_converters import from_reservation_create
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
-    WRAPPER_TO_CALENDAR_QUEUE, WRAPPER_TO_CALENDAR_ROUTING_KEY, routing_key_by_service
+    WRAPPER_TO_CALENDAR_QUEUE, WRAPPER_TO_CALENDAR_ROUTING_KEY, routing_key_by_service, WRAPPER_BROADCAST_ROUTING_KEY
 )
 from ProjectUtils.MessagingService.schemas import from_json, MessageType, MessageFactory, to_json_aoi_bytes
 from sqlalchemy.orm import Session
@@ -85,5 +85,16 @@ async def import_reservations(db: Session, service_value: str, reservations):
                         message=to_json_aoi_bytes(MessageFactory.create_confirm_reservation_message(reservation))
                     )
                 create_reservation(db, reservation_schema)
+
+
+async def propagate_event_to_wrappers(db_event):
+    await async_exchange.publish(
+        routing_key=WRAPPER_BROADCAST_ROUTING_KEY,
+        message=to_json_aoi_bytes(
+            MessageFactory.create_management_event_propagation_message(
+                db_event.property_id, db_event.id, db_event.begin_datetime, db_event.end_datetime
+            )
+        )
+    )
 
 
