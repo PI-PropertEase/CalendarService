@@ -94,7 +94,8 @@ async def update_event(
                        f"and end_datetime {updating_event.end_datetime}.")
 
     db_event = crud.update_event(db, event_to_update, update_parameters)
-    await propagate_event_update_to_wrappers(db_event)
+    if len(begin_end_datetime_update_parameters) > 0:
+        await propagate_event_update_to_wrappers(db_event)
     return db_event
 
 
