@@ -47,6 +47,7 @@ def create_management_event(db: Session, management_event, ManagementEventClass)
 def delete_management_event(db: Session, management_event: models.ManagementEvent):
     db.delete(management_event)
     db.commit()
+    return management_event
 
 
 def create_reservation(db: Session, reservation: Reservation):

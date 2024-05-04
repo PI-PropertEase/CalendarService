@@ -4,7 +4,8 @@ from CalendarService.dependencies import get_user, get_db, get_user_email, get_u
     get_management_event_model, \
     InitializeUpdateEventAccordingToEndpoint, get_event_model
 from CalendarService import crud
-from CalendarService.messaging_operations import propagate_event_to_wrappers
+from CalendarService.messaging_operations import propagate_event_creation_to_wrappers, \
+    propagate_event_update_to_wrappers, propagate_event_deletion_to_wrappers
 from CalendarService.schemas import Cleaning, Maintenance, UniformEventWithId, UserBase, UpdateCleaning, \
     BaseEvent, CleaningWithId, MaintenanceWithId, BaseEventWithId, UpdateMaintenance, ReservationWithId
 from sqlalchemy.orm import Session
@@ -52,7 +53,7 @@ async def create_management_event(
             detail=f"There are overlapping events with the event with begin_datetime {event_data.begin_datetime} "
                    f"and end_datetime {event_data.end_datetime}.")
     db_event = crud.create_management_event(db, event_data, event_model)
-    await propagate_event_to_wrappers(db_event)
+    await propagate_event_creation_to_wrappers(db_event)
     return db_event
 
 
@@ -92,7 +93,9 @@ async def update_event(
                        f"with begin_datetime {updating_event.begin_datetime} "
                        f"and end_datetime {updating_event.end_datetime}.")
 
-    return crud.update_event(db, event_to_update, update_parameters)
+    db_event = crud.update_event(db, event_to_update, update_parameters)
+    await propagate_event_update_to_wrappers(db_event)
+    return db_event
 
 
 @api_router.delete("/management/cleaning/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -107,4 +110,5 @@ async def delete_management_event_by_id(
     if management_event is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Event of type {event_model.__tablename__} with id {event_id} for email {owner_email} not found")
-    crud.delete_management_event(db, management_event)
+    db_event = crud.delete_management_event(db, management_event)
+    await propagate_event_deletion_to_wrappers(db_event)
