@@ -17,6 +17,13 @@ def get_specific_events_by_owner_email(db: Session, owner_email: str, EventClass
     return db.query(EventClass).filter(models.BaseEvent.owner_email == owner_email).all()
 
 
+def get_specific_events_by_owner_email_and_property_id(db: Session, owner_email: str, property_id: int, EventClass):
+    return db.query(EventClass).filter(and_(
+        models.BaseEvent.owner_email == owner_email,
+        models.BaseEvent.property_id == property_id
+    )).all()
+
+
 def update_event(db: Session, event_to_update: models.BaseEvent, update_parameters: dict):
     for field_name, field_value in update_parameters.items():
         setattr(event_to_update, field_name, field_value)

@@ -34,10 +34,13 @@ async def read_events_by_owner_email(owner_email: str = Depends(get_user_email),
 @api_router.get("/management/maintenance", response_model=list[MaintenanceWithId], status_code=status.HTTP_200_OK)
 async def read_specific_events_by_owner_email(
         owner_email: str = Depends(get_user_email),
+        property_id: int = None,
         event_model: models.Reservation | models.Cleaning | models.Maintenance = Depends(get_event_model),
         db: Session = Depends(get_db)
 ):
-    return crud.get_specific_events_by_owner_email(db, owner_email, event_model)
+    if property_id is None:
+        return crud.get_specific_events_by_owner_email(db, owner_email, event_model)
+    return crud.get_specific_events_by_owner_email_and_property_id(db, owner_email, property_id, event_model)
 
 
 @api_router.post("/management/cleaning", response_model=CleaningWithId, status_code=status.HTTP_201_CREATED)
