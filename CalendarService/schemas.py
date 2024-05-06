@@ -55,6 +55,7 @@ class Cleaning(InternalEvent):
 
 
 class UpdateCleaning(BaseModel):
+    worker_name: Optional[str] = None
     begin_datetime: Optional[datetime] = None
     end_datetime: Optional[datetime] = None
 
@@ -77,6 +78,7 @@ class Maintenance(InternalEvent):
 
 
 class UpdateMaintenance(BaseModel):
+    company_name: Optional[str] = None
     begin_datetime: Optional[datetime] = None
     end_datetime: Optional[datetime] = None
 
