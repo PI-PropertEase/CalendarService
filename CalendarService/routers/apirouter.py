@@ -74,6 +74,11 @@ async def update_event(
 
     update_parameters = {field_name: field_value for field_name, field_value in update_event_data
                          if field_value is not None}
+
+    if len(update_parameters) == 0:
+        # The update is empty, but we should still return the matching record:
+        return event_to_update
+
     begin_end_datetime_update_parameters = {key: value for key in ["begin_datetime", "end_datetime"]
                                             if (value := update_parameters.get(key)) is not None}
 

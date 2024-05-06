@@ -1,8 +1,10 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
-
-from pydantic import BaseModel, EmailStr
+from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, EmailStr, model_validator
+from pydantic_core import ValidationError
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
 PhoneNumber.phone_format = 'E164'  # 'INTERNATIONAL'
@@ -33,6 +35,14 @@ class BaseEvent(BaseModel):
     begin_datetime: datetime
     end_datetime: datetime
 
+    @model_validator(mode="after")
+    def validate(self):
+        if self.begin_datetime < datetime.now():
+            raise RequestValidationError("begin_datetime cannot be in the past")
+        if self.begin_datetime >= self.end_datetime:
+            raise RequestValidationError("begin_datetime cannot be greater or equal to end_datetime")
+        return self
+
 
 class InternalEvent(BaseEvent):
     pass
@@ -47,9 +57,21 @@ class Cleaning(InternalEvent):
 
 
 class UpdateCleaning(BaseModel):
-    property_id: Optional[int] = None
     begin_datetime: Optional[datetime] = None
     end_datetime: Optional[datetime] = None
+
+    @model_validator(mode="after")
+    def validate(self):
+        begin_end_datetime_none_size = [mydatetime for mydatetime in [self.begin_datetime, self.end_datetime] if mydatetime is None]
+        if len(begin_end_datetime_none_size) != 2:
+            if len(begin_end_datetime_none_size) != 0:
+                raise RequestValidationError("begin_datetime and end_datetime have to both be specified or both not specified")
+            else:
+                if self.begin_datetime < datetime.now():
+                    raise RequestValidationError("begin_datetime cannot be in the past")
+                if self.begin_datetime >= self.end_datetime:
+                    raise RequestValidationError("begin_datetime cannot be greater or equal to end_datetime")
+        return self
 
 
 class Maintenance(InternalEvent):
@@ -57,9 +79,21 @@ class Maintenance(InternalEvent):
 
 
 class UpdateMaintenance(BaseModel):
-    property_id: Optional[int] = None
     begin_datetime: Optional[datetime] = None
     end_datetime: Optional[datetime] = None
+
+    @model_validator(mode="after")
+    def validate(self):
+        begin_end_datetime_none_size = [mydatetime for mydatetime in [self.begin_datetime, self.end_datetime] if mydatetime is None]
+        if len(begin_end_datetime_none_size) != 2:
+            if len(begin_end_datetime_none_size) != 0:
+                raise RequestValidationError("begin_datetime and end_datetime have to both be specified or both not specified")
+            else:
+                if self.begin_datetime < datetime.now():
+                    raise RequestValidationError("begin_datetime cannot be in the past")
+                if self.begin_datetime >= self.end_datetime:
+                    raise RequestValidationError("begin_datetime cannot be greater or equal to end_datetime")
+        return self
 
 
 class ReservationStatus(str, Enum):
