@@ -37,8 +37,6 @@ class BaseEvent(BaseModel):
 
     @model_validator(mode="after")
     def validate(self):
-        if self.begin_datetime < datetime.now():
-            raise RequestValidationError("begin_datetime cannot be in the past")
         if self.begin_datetime >= self.end_datetime:
             raise RequestValidationError("begin_datetime cannot be greater or equal to end_datetime")
         return self
