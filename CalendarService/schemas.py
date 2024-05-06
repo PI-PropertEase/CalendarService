@@ -53,7 +53,7 @@ class ExternalEvent(BaseEvent):
 
 
 class Cleaning(InternalEvent):
-    pass
+    worker_name: str
 
 
 class UpdateCleaning(BaseModel):
@@ -75,7 +75,7 @@ class UpdateCleaning(BaseModel):
 
 
 class Maintenance(InternalEvent):
-    pass
+    company_name: str
 
 
 class UpdateMaintenance(BaseModel):
@@ -143,11 +143,11 @@ class ManagementEventWithId(BaseEventWithId):
 
 
 class CleaningWithId(ManagementEventWithId):
-    pass
+    worker_name: str
 
 
 class MaintenanceWithId(ManagementEventWithId):
-    pass
+    company_name: str
 
 
 class ReservationWithId(BaseEventWithId):

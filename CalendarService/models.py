@@ -56,6 +56,7 @@ class Maintenance(ManagementEvent):
         "polymorphic_identity": "maintenance",
     }
     id = Column(Integer, ForeignKey("management_event.id"), primary_key=True)
+    company_name = Column(String)
 
 
 class Cleaning(ManagementEvent):
@@ -64,6 +65,7 @@ class Cleaning(ManagementEvent):
         "polymorphic_identity": "cleaning",
     }
     id = Column(Integer, ForeignKey("management_event.id"), primary_key=True)
+    worker_name = Column(String)
 
 
 class ReservationStatus(EnumType):
