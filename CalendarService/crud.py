@@ -5,6 +5,8 @@ from sqlalchemy import or_, and_
 from sqlalchemy import update
 from CalendarService import models
 from CalendarService.schemas import Reservation, BaseEvent, Cleaning, BaseEventWithId
+from fastapi_mail import FastMail, MessageSchema, MessageType
+from CalendarService import email_config
 
 
 def get_all_events_by_owner_email(db: Session, owner_email: str):
@@ -173,3 +175,20 @@ def there_are_overlapping_events_excluding_updating_event(db: Session, updating_
                 )
             )
         )).count() > 0
+
+
+async def send_email_to_reservation_client(db: Session, key: str, reservation_id: int):
+    reservation: models.Reservation = get_reservation_by_internal_id(db, reservation_id)
+
+    print(f"Sending email to reservation {reservation.id}'s client: {reservation.client_email}")
+
+    message = MessageSchema(
+        subject=f"Key to open the door for your reservation from {reservation.begin_datetime} to {reservation.end_datetime}.",
+        recipients=["joao.p.dourado1@gmail.com"],
+        body=email_config.template,
+        subtype=MessageType.html)
+
+    fm = FastMail(email_config.conf)
+    await fm.send_message(message)
+
+
