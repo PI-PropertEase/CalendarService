@@ -7,6 +7,7 @@ from CalendarService import models
 from CalendarService.schemas import Reservation, BaseEvent, Cleaning, BaseEventWithId
 from fastapi_mail import FastMail, MessageSchema, MessageType
 from CalendarService import email_config
+from fastapi import HTTPException
 
 
 def get_all_events_by_owner_email(db: Session, owner_email: str):
@@ -180,12 +181,20 @@ def there_are_overlapping_events_excluding_updating_event(db: Session, updating_
 async def send_email_to_reservation_client(db: Session, key: str, reservation_id: int):
     reservation: models.Reservation = get_reservation_by_internal_id(db, reservation_id)
 
+    if reservation is None:
+        raise HTTPException(status_code=404, detail=f"Reservation with id {reservation_id} not found")
+
     print(f"Sending email to reservation {reservation.id}'s client: {reservation.client_email}")
 
     message = MessageSchema(
         subject=f"Key to open the door for your reservation from {reservation.begin_datetime} to {reservation.end_datetime}.",
-        recipients=["joao.p.dourado1@gmail.com"],
-        body=email_config.template,
+        recipients=[reservation.client_email],
+        body=email_config.template.substitute({
+            "client_name": reservation.client_name,
+            "key": key,
+            "begin_time": reservation.begin_datetime,
+            "end_time": reservation.end_datetime
+        }),
         subtype=MessageType.html)
 
     fm = FastMail(email_config.conf)
