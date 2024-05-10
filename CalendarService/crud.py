@@ -178,12 +178,7 @@ def there_are_overlapping_events_excluding_updating_event(db: Session, updating_
         )).count() > 0
 
 
-async def send_email_to_reservation_client(db: Session, key: str, reservation_id: int):
-    reservation: models.Reservation = get_reservation_by_internal_id(db, reservation_id)
-
-    if reservation is None:
-        raise HTTPException(status_code=404, detail=f"Reservation with id {reservation_id} not found")
-
+async def send_email_to_reservation_client(db: Session, key: str, reservation: Reservation):
     print(f"Sending email to reservation {reservation.id}'s client: {reservation.client_email}")
 
     message = MessageSchema(

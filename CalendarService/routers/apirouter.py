@@ -125,4 +125,9 @@ async def delete_management_event_by_id(
 
 @api_router.post("/reservation/{reservation_id}/email_key", status_code=204)
 async def send_email_with_key(reservation_id: int, key_input: KeyInput, db: Session = Depends(get_db)):
-    await crud.send_email_to_reservation_client(db, key_input.key, reservation_id)
+    reservation: models.Reservation = crud.get_reservation_by_internal_id(db, reservation_id)
+
+    if reservation is None:
+        raise HTTPException(status_code=404, detail=f"Reservation with id {reservation_id} not found")
+
+    await crud.send_email_to_reservation_client(db, key_input.key, reservation)
