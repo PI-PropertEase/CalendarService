@@ -43,14 +43,6 @@ async def consume_wrappers_message(incoming_message):
         print("\nconsume_wrappers_message", message.__dict__)
         with SessionLocal() as db:
             match message.message_type:
-                case MessageType.RESERVATION_CREATE:
-                    pass
-                    # reservation = from_reservation_create(from_json(incoming_message.body))
-                    # create_reservation(db, reservation=reservation)
-                case MessageType.RESERVATION_UPDATE:
-                    pass
-                case MessageType.RESERVATION_DELETE:
-                    pass
                 case MessageType.RESERVATION_IMPORT:
                     body = message.body
                     await import_reservations(db, body["service"], body["reservations"])
@@ -79,11 +71,13 @@ async def import_reservations(db: Session, service_value: str, reservations):
                     routing_key=routing_key_by_service[service_value],
                     message=to_json_aoi_bytes(MessageFactory.create_overlap_import_reservation_message(reservation))
                 )
+                reservation_schema.reservation_status = "canceled"
+                create_reservation(db, reservation_schema)
             else:
                 if reservation_schema.reservation_status == "pending":
                     reservation_schema.reservation_status = "confirmed"
                     await async_exchange.publish(
-                        routing_key=routing_key_by_service[service_value],
+                        routing_key=WRAPPER_BROADCAST_ROUTING_KEY,
                         message=to_json_aoi_bytes(MessageFactory.create_confirm_reservation_message(reservation))
                     )
                 create_reservation(db, reservation_schema)
