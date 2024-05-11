@@ -56,9 +56,15 @@ async def import_reservations(db: Session, service_value: str, reservations):
             # canceled -> either cancelling existing reservation or importing canceled reservation
             reservation_with_same_id = get_reservation_by_external_id(db, reservation_schema.external_id)
             if reservation_with_same_id is not None:
+                # if the reservation already exists
+                # there is the chance that is already propagated to other services
                 print("before_update", reservation_with_same_id.__dict__)
                 print("after_cancelled",
                       update_reservation_status(db, reservation_with_same_id, models.ReservationStatus.CANCELED))
+                await async_exchange.publish(
+                    routing_key=WRAPPER_BROADCAST_ROUTING_KEY,
+                    message=to_json_aoi_bytes(MessageFactory.create_cancel_reservation_message(reservation))
+                )
             else:
                 reservation_schema.reservation_status = "canceled"
                 create_reservation(db, reservation_schema)
