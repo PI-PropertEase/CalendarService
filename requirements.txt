@@ -9,3 +9,4 @@ aio-pika==9.4.1
 phonenumbers==8.13.34
 pydantic-extra-types==2.6.0
 email_validator==2.1.1
+fastapi-mail==1.4.1

@@ -157,3 +157,7 @@ class ReservationWithId(BaseEventWithId):
     client_name: str
     client_phone: PhoneNumber
     cost: float
+
+
+class KeyInput(BaseModel):
+    key: str
