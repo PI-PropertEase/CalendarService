@@ -25,8 +25,11 @@ async def read_management_event_types():
 
 
 @api_router.get("", response_model=list[UniformEventWithId], status_code=status.HTTP_200_OK)
-async def read_events_by_owner_email(owner_email: str = Depends(get_user_email), db: Session = Depends(get_db)):
-    return crud.get_all_events_by_owner_email(db, owner_email)
+async def read_events_by_owner_email(reservation_status: models.ReservationStatus,
+    owner_email: str = Depends(get_user_email), db: Session = Depends(get_db)):
+    return crud.get_all_events_by_owner_email_and_filter_reservations_by_status(
+        db, owner_email, reservation_status
+    )
 
 
 @api_router.get("/reservation", response_model=list[ReservationWithId], status_code=status.HTTP_200_OK)

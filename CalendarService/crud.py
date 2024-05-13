@@ -10,10 +10,16 @@ from CalendarService import email_config
 from fastapi import HTTPException
 
 
-def get_all_events_by_owner_email(db: Session, owner_email: str):
+def get_all_events_by_owner_email_and_filter_reservations_by_status(
+        db: Session, owner_email: str, reservation_status: models.ReservationStatus):
     # include columns for all mapped subclasses
     model = with_polymorphic(models.BaseEvent, "*")
-    return db.query(model).filter(models.BaseEvent.owner_email == owner_email).all()
+    return db.query(model).filter(and_(
+        models.BaseEvent.owner_email == owner_email,
+        or_(
+            models.BaseEvent.type != "reservation",
+            models.Reservation.reservation_status == reservation_status
+        ))).all()
 
 
 def get_specific_events_by_owner_email(db: Session, owner_email: str, EventClass):
