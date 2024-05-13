@@ -11,7 +11,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
 )
 from ProjectUtils.MessagingService.schemas import from_json, MessageType, MessageFactory, to_json_aoi_bytes
 from sqlalchemy.orm import Session
-
+from . import crud
 from CalendarService import models
 
 # TODO: fix this in the future
@@ -42,15 +42,28 @@ async def consume_wrappers_message(incoming_message):
         message = from_json(incoming_message.body)
         print("\nconsume_wrappers_message", message.__dict__)
         with SessionLocal() as db:
+            body = message.body
             match message.message_type:
                 case MessageType.RESERVATION_IMPORT:
-                    body = message.body
                     await import_reservations(db, body["service"], body["reservations"])
+                case MessageType.RESERVATION_IMPORT_REQUEST_OTHER_SERVICES_CONFIRMED_RESERVATIONS:
+                    for property_id in body["properties_ids"]:
+                        for reservation in crud.get_confirmed_reservations_by_property_id(db, property_id):
+                            await async_exchange.publish(
+                                routing_key=routing_key_by_service[body["service"]],
+                                message=to_json_aoi_bytes(MessageFactory.create_confirm_reservation_message({
+                                    "_id": reservation.external_id,
+                                    "property_id": reservation.property_id,
+                                    "begin_datetime": reservation.begin_datetime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                    "end_datetime": reservation.end_datetime.strftime("%Y-%m-%dT%H:%M:%S"),
+                                }))
+                            )
+
 
 
 async def import_reservations(db: Session, service_value: str, reservations):
-    # reservations -> apenas reservas novas ou canceladas
     for reservation in reservations:
+        print("reservation", reservation)
         reservation_schema = from_reservation_create(service_value, reservation)
         if reservation_schema.reservation_status == "canceled":
             # canceled -> either cancelling existing reservation or importing canceled reservation
@@ -120,3 +133,6 @@ async def propagate_event_deletion_to_wrappers(db_event):
             MessageFactory.create_management_event_deletion_message(db_event.property_id, db_event.id)
         )
     )
+
+
+

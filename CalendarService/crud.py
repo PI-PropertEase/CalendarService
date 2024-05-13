@@ -24,6 +24,13 @@ def get_specific_events_by_owner_email_and_property_id(db: Session, owner_email:
     )).all()
 
 
+def get_confirmed_reservations_by_property_id(db: Session, property_id: int):
+    return db.query(models.Reservation).filter(and_(
+        models.Reservation.property_id == property_id,
+        models.Reservation.reservation_status == models.ReservationStatus.CONFIRMED
+    )).all()
+
+
 def update_event(db: Session, event_to_update: models.BaseEvent, update_parameters: dict):
     for field_name, field_value in update_parameters.items():
         setattr(event_to_update, field_name, field_value)
