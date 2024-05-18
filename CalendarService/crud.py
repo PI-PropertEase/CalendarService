@@ -201,6 +201,11 @@ def add_to_email_property_id_mapping(db: Session, email: str, property_id: int):
     db.commit()
 
 
+def get_property_ids_by_email(db: Session, email: str) -> list[int]:
+    db_email_property_id_mapping = db.query(models.EmailPropertyIdMapping).get(email)
+    return db_email_property_id_mapping.properties_ids if db_email_property_id_mapping is not None else []
+
+
 async def send_email_to_reservation_client(db: Session, key: str, reservation: Reservation):
     print(f"Sending email to reservation {reservation.id}'s client: {reservation.client_email}")
 
