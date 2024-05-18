@@ -51,8 +51,15 @@ async def read_specific_events_by_owner_email(
 async def create_management_event(
         event_data: Cleaning | Maintenance = Depends(InitializeEventWithOwnerEmail()),
         event_model: models.Cleaning | models.Maintenance = Depends(get_management_event_model),
+        owner_email: str = Depends(get_user_email),
         db: Session = Depends(get_db)
 ):
+    if event_data.property_id not in crud.get_property_ids_by_email(db, owner_email):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"There are no registered properties for email {owner_email} which you can create events for."
+        )
+
     if crud.there_are_overlapping_events(db, event_data):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -127,10 +134,12 @@ async def delete_management_event_by_id(
 
 
 @api_router.post("/reservation/{reservation_id}/email_key", status_code=204)
-async def send_email_with_key(reservation_id: int, key_input: KeyInput, db: Session = Depends(get_db)):
+async def send_email_with_key(reservation_id: int, key_input: KeyInput, owner_email: EmailStr = Depends(get_user_email),
+                              db: Session = Depends(get_db)):
+
     reservation: models.Reservation = crud.get_reservation_by_internal_id(db, reservation_id)
 
-    if reservation is None:
-        raise HTTPException(status_code=404, detail=f"Reservation with id {reservation_id} not found")
+    if reservation is None or reservation.owner_email != owner_email:
+        raise HTTPException(status_code=404, detail=f"Reservation with id {reservation_id} for email {owner_email} not found.")
 
     await crud.send_email_to_reservation_client(db, key_input.key, reservation)
