@@ -7,7 +7,8 @@ from CalendarService.messaging_converters import from_reservation_create
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
-    WRAPPER_TO_CALENDAR_QUEUE, WRAPPER_TO_CALENDAR_ROUTING_KEY, routing_key_by_service, WRAPPER_BROADCAST_ROUTING_KEY
+    WRAPPER_TO_CALENDAR_QUEUE, WRAPPER_TO_CALENDAR_ROUTING_KEY, routing_key_by_service, WRAPPER_BROADCAST_ROUTING_KEY,
+    PROPERTY_TO_CALENDAR_ROUTING_KEY, PROPERTY_TO_CALENDAR_QUEUE
 )
 from ProjectUtils.MessagingService.schemas import from_json, MessageType, MessageFactory, to_json_aoi_bytes
 from sqlalchemy.orm import Session
@@ -25,14 +26,17 @@ async def consume(loop):
     async_channel = await connection.channel()
 
     wrappers_queue = await async_channel.declare_queue(WRAPPER_TO_CALENDAR_QUEUE, durable=True)
+    email_property_id_mapping_queue = await async_channel.declare_queue(PROPERTY_TO_CALENDAR_QUEUE, durable=True)
 
     async_exchange = await async_channel.declare_exchange(
         name=EXCHANGE_NAME, type=ExchangeType.TOPIC, durable=True
     )
 
     await wrappers_queue.bind(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY)
+    await email_property_id_mapping_queue.bind(exchange=EXCHANGE_NAME, routing_key=PROPERTY_TO_CALENDAR_ROUTING_KEY)
 
     await wrappers_queue.consume(callback=consume_wrappers_message)
+    await email_property_id_mapping_queue.consume(callback=consume_properties_message)
 
     return connection
 
@@ -58,7 +62,6 @@ async def consume_wrappers_message(incoming_message):
                                     "end_datetime": reservation.end_datetime.strftime("%Y-%m-%dT%H:%M:%S"),
                                 }))
                             )
-
 
 
 async def import_reservations(db: Session, service_value: str, reservations):
@@ -135,4 +138,12 @@ async def propagate_event_deletion_to_wrappers(db_event):
     )
 
 
-
+async def consume_properties_message(incoming_message):
+    async with incoming_message.process():
+        message = from_json(incoming_message.body)
+        print("\nconsume_properties_message", message.__dict__)
+        with SessionLocal() as db:
+            body = message.body
+            match message.message_type:
+                case MessageType.EMAIL_PROPERTY_ID_MAPPING:
+                    crud.add_to_email_property_id_mapping(db, body["email"], body["property_id"])

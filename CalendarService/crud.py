@@ -191,6 +191,16 @@ def there_are_overlapping_events_excluding_updating_event(db: Session, updating_
         )).count() > 0
 
 
+def add_to_email_property_id_mapping(db: Session, email: str, property_id: int):
+    db_email_property_id_mapping = db.query(models.EmailPropertyIdMapping).get(email)
+    if db_email_property_id_mapping is None:
+        db_email_property_id_mapping = models.EmailPropertyIdMapping(email=email, properties_ids=[property_id])
+        db.add(db_email_property_id_mapping)
+    else:
+        db_email_property_id_mapping.properties_ids.append(property_id)
+    db.commit()
+
+
 async def send_email_to_reservation_client(db: Session, key: str, reservation: Reservation):
     print(f"Sending email to reservation {reservation.id}'s client: {reservation.client_email}")
 
