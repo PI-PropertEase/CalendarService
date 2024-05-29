@@ -58,10 +58,12 @@ async def read_specific_events_by_owner_email(
                  description="Creates a new cleaning event for the specified property and the given timeframe",
                  responses={
                     status.HTTP_404_NOT_FOUND: {
-                        "description": "Specified property for creating event does not exist."
+                        "description": "Specified property for creating event does not exist.",
+                        "content": {"application/json": {"example": {"detail": "Specified property for creating event does not exist."}}}
                     },
                     status.HTTP_409_CONFLICT: {
-                        "description": "There are overlapping events with the event to be created."
+                        "description": "There are overlapping events with the event to be created.",
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event to be created."}}}
                     }
                 })
 @api_router.post("/management/maintenance", response_model=MaintenanceWithId, status_code=status.HTTP_201_CREATED,
@@ -69,10 +71,12 @@ async def read_specific_events_by_owner_email(
                  description="Creates a new maintenance event for the specified property and the given timeframe",
                  responses={
                     status.HTTP_404_NOT_FOUND: {
-                        "description": "Specified property for creating event does not exist."
+                        "description": "Specified property for creating event does not exist.",
+                        "content": {"application/json": {"example": {"detail": "Specified property for creating event does not exist."}}}
                     },
                     status.HTTP_409_CONFLICT: {
-                        "description": "There are overlapping events with the event to be created."
+                        "description": "There are overlapping events with the event to be created.",
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event to be created."}}}
                     }
                 })
 async def create_management_event(
@@ -103,10 +107,12 @@ async def create_management_event(
                             "If the begin_datetime or end_datetime parameters are updated, the system will check for overlapping events.",
                 responses={
                     status.HTTP_404_NOT_FOUND: {
-                        "description": "Specified event for updating does not exist."
+                        "description": "Specified event for updating does not exist.",
+                        "content": {"application/json": {"example": {"detail": "Specified event for updating does not exist."}}}
                     },
                     status.HTTP_409_CONFLICT: {
-                        "description": "There are overlapping events with the given interval for the event to be updated."
+                        "description": "There are overlapping events with the given interval for the event to be updated.",
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the given interval for the event to be updated."}}}
                     }
                 })
 @api_router.put("/management/maintenance/{event_id}", response_model=MaintenanceWithId, status_code=status.HTTP_200_OK,
@@ -115,10 +121,12 @@ async def create_management_event(
                             "If the begin_datetime or end_datetime parameters are updated, the system will check for overlapping events.",
                 responses={
                     status.HTTP_404_NOT_FOUND: {
-                        "description": "Specified event for updating does not exist."
+                        "description": "Specified event for updating does not exist.",
+                        "content": {"application/json": {"example": {"detail": "Specified event for updating does not exist."}}}
                     },
                     status.HTTP_409_CONFLICT: {
-                        "description": "There are overlapping events with the given time interval for the event to be updated."
+                        "description": "There are overlapping events with the given time interval for the event to be updated.",
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the given time interval for the event to be updated."}}}
                     }
                 })
 async def update_event(
@@ -171,7 +179,8 @@ async def update_event(
                    description="Deletes the cleaning event with the given id.",
                    responses={
                        status.HTTP_404_NOT_FOUND: {
-                           "description": "Specified event for deletion does not exist."
+                            "description": "Specified event for deletion does not exist.",
+                            "content": {"application/json": {"example": {"detail": "Specified event for deletion does not exist."}}}
                        }
                    })
 @api_router.delete("/management/maintenance/{event_id}", status_code=status.HTTP_204_NO_CONTENT,
@@ -179,7 +188,8 @@ async def update_event(
                    description="Deletes the maintenance event with the given id.",
                    responses={
                        status.HTTP_404_NOT_FOUND: {
-                           "description": "Specified event for deletion does not exist."
+                            "description": "Specified event for deletion does not exist.",
+                            "content": {"application/json": {"example": {"detail": "Specified event for deletion does not exist."}}}
                        }
                    })
 async def delete_management_event_by_id(
@@ -202,7 +212,8 @@ async def delete_management_event_by_id(
                     The email contains the key to the property.",
                  responses={
                      status.HTTP_404_NOT_FOUND: {
-                         "description": "Reservation with the given id for the email does not exist."
+                        "description": "Reservation with the given id for the email does not exist.",
+                        "content": {"application/json": {"example": {"detail": "Reservation with the given id for the email does not exist."}}}
                      }
                  })
 async def send_email_with_key(reservation_id: int, key_input: KeyInput, owner_email: EmailStr = Depends(get_user_email),
