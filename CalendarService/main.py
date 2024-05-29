@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
 cred = credentials.Certificate(".secret.json")
 firebase_admin.initialize_app(cred)
 models.Base.metadata.create_all(bind=engine)
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, root_path="/api/CalendarService")
 
 # CORS setup
 app.add_middleware(
