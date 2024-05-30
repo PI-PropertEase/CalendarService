@@ -19,13 +19,22 @@ from ProjectUtils.MessagingService.schemas import MessageFactory
 api_router = APIRouter(prefix="/events", tags=["events"], dependencies=[Depends(get_user)])
 
 
-@api_router.get("/management/types", response_model=list[str], status_code=status.HTTP_200_OK, summary="List available management event types.")
+@api_router.get("/management/types", response_model=list[str], status_code=status.HTTP_200_OK,
+                summary="List available management event types.",
+                responses={
+                    status.HTTP_200_OK: {
+                        "description": "Return a list of all available management event types.",
+                        "content": {"application/json": {
+                            "example": ["maintenance", "cleaning"]
+                        }}
+                    }
+                })
 async def read_management_event_types():
     return models.management_event_types
 
 
 @api_router.get("", response_model=list[UniformEventWithId], status_code=status.HTTP_200_OK, 
-                summary="List of all events of a specific user, including reservations and cleaning/maintenance events.")
+                summary="List all events of a specific user, including reservations and cleaning/maintenance events.")
 async def read_events_by_owner_email(reservation_status: models.ReservationStatus,
     owner_email: str = Depends(get_user_email), db: Session = Depends(get_db)):
     return crud.get_all_events_by_owner_email_and_filter_reservations_by_status(
@@ -59,11 +68,12 @@ async def read_specific_events_by_owner_email(
                  responses={
                     status.HTTP_404_NOT_FOUND: {
                         "description": "Specified property for creating event does not exist.",
-                        "content": {"application/json": {"example": {"detail": "Specified property for creating event does not exist."}}}
+                        "content": {"application/json": {"example": {"detail": "There are no registered properties for email user@example.com which you can create events for."}}}
                     },
                     status.HTTP_409_CONFLICT: {
                         "description": "There are overlapping events with the event to be created.",
-                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event to be created."}}}
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event with begin_datetime 2024-05-30T10:37:34 "
+                                                                               "and end_datetime 2024-05-31T10:37:34."}}}
                     }
                 },
                 openapi_extra={
@@ -74,7 +84,7 @@ async def read_specific_events_by_owner_email(
                                 "example": {
                                     "worker_name": "Great person",
                                     "property_id": "1",
-                                    "owner_email": "owner@gmail.com",
+                                    "owner_email": "user@example.com",
                                     "begin_datetime": "2024-05-30T10:37:34",
                                     "end_datetime": "2024-05-31T10:37:34"
                                 }
@@ -89,11 +99,12 @@ async def read_specific_events_by_owner_email(
                  responses={
                     status.HTTP_404_NOT_FOUND: {
                         "description": "Specified property for creating event does not exist.",
-                        "content": {"application/json": {"example": {"detail": "Specified property for creating event does not exist."}}}
+                        "content": {"application/json": {"example": {"detail": "There are no registered properties for email user@example.com which you can create events for."}}}
                     },
                     status.HTTP_409_CONFLICT: {
                         "description": "There are overlapping events with the event to be created.",
-                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event to be created."}}}
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event with begin_datetime 2024-05-30T10:37:34 "
+                                                                               "and end_datetime 2024-05-31T10:37:34."}}}
                     }
                 },
                 openapi_extra={
@@ -104,7 +115,7 @@ async def read_specific_events_by_owner_email(
                                 "example": {
                                     "company_name": "Maintenance Lda.",
                                     "property_id": "1",
-                                    "owner_email": "owner@gmail.com",
+                                    "owner_email": "user@example.com",
                                     "begin_datetime": "2024-05-30T10:37:34",
                                     "end_datetime": "2024-05-31T10:37:34"
                                 }
@@ -211,18 +222,26 @@ async def update_event(
                    summary="Delete cleaning event",
                    description="Deletes the cleaning event with the given id.",
                    responses={
+                       status.HTTP_204_NO_CONTENT: {
+                           "description": "Event deleted successfully.",
+                           "content": {"application/json": {"example": {}}}
+                       },
                        status.HTTP_404_NOT_FOUND: {
                             "description": "Specified event for deletion does not exist.",
-                            "content": {"application/json": {"example": {"detail": "Specified event for deletion does not exist."}}}
+                            "content": {"application/json": {"example": {"detail": "Event of type cleaning with id 0 for email user@example.com not found."}}}
                        }
                    })
 @api_router.delete("/management/maintenance/{event_id}", status_code=status.HTTP_204_NO_CONTENT,
                    summary="Delete maintenance event",
                    description="Deletes the maintenance event with the given id.",
                    responses={
+                       status.HTTP_204_NO_CONTENT: {
+                           "description": "Event deleted successfully.",
+                           "content": {"application/json": {"example": {}}}
+                       },
                        status.HTTP_404_NOT_FOUND: {
                             "description": "Specified event for deletion does not exist.",
-                            "content": {"application/json": {"example": {"detail": "Specified event for deletion does not exist."}}}
+                            "content": {"application/json": {"example": {"detail": "Event of type maintenance with id 0 for email user@example.com not found."}}}
                        }
                    })
 async def delete_management_event_by_id(
@@ -244,9 +263,13 @@ async def delete_management_event_by_id(
                  description="Sends an email to the client of the reservation with the given id. \
                     The email contains the key to the property.",
                  responses={
+                     status.HTTP_204_NO_CONTENT: {
+                         "description": "Successful Response.",
+                         "content": {"application/json": {"example": {}}}
+                     },
                      status.HTTP_404_NOT_FOUND: {
                         "description": "Reservation with the given id for the email does not exist.",
-                        "content": {"application/json": {"example": {"detail": "Reservation with the given id for the email does not exist."}}}
+                        "content": {"application/json": {"example": {"detail": "Reservation with id 0 for the email user@example.com not found."}}}
                      }
                  })
 async def send_email_with_key(reservation_id: int, key_input: KeyInput, owner_email: EmailStr = Depends(get_user_email),
