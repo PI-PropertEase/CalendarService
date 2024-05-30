@@ -65,7 +65,24 @@ async def read_specific_events_by_owner_email(
                         "description": "There are overlapping events with the event to be created.",
                         "content": {"application/json": {"example": {"detail": "There are overlapping events with the event to be created."}}}
                     }
-                })
+                },
+                openapi_extra={
+                    "requestBody": {
+                        "required": "true",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "worker_name": "Great person",
+                                    "property_id": "1",
+                                    "owner_email": "owner@gmail.com",
+                                    "begin_datetime": "2024-05-30T10:37:34",
+                                    "end_datetime": "2024-05-31T10:37:34"
+                                }
+                            }
+                        }
+                    }
+                },
+            )
 @api_router.post("/management/maintenance", response_model=MaintenanceWithId, status_code=status.HTTP_201_CREATED,
                  summary="Create new maintenance event",
                  description="Creates a new maintenance event for the specified property and the given timeframe",
@@ -78,7 +95,23 @@ async def read_specific_events_by_owner_email(
                         "description": "There are overlapping events with the event to be created.",
                         "content": {"application/json": {"example": {"detail": "There are overlapping events with the event to be created."}}}
                     }
-                })
+                },
+                openapi_extra={
+                    "requestBody": {
+                        "required": "true",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "company_name": "Maintenance Lda.",
+                                    "property_id": "1",
+                                    "owner_email": "owner@gmail.com",
+                                    "begin_datetime": "2024-05-30T10:37:34",
+                                    "end_datetime": "2024-05-31T10:37:34"
+                                }
+                            }
+                        }
+                    }
+                },            )
 async def create_management_event(
         event_data: Cleaning | Maintenance = Depends(InitializeEventWithOwnerEmail()),
         event_model: models.Cleaning | models.Maintenance = Depends(get_management_event_model),
