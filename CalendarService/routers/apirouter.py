@@ -84,7 +84,6 @@ async def read_specific_events_by_owner_email(
                                 "example": {
                                     "worker_name": "Great person",
                                     "property_id": "1",
-                                    "owner_email": "user@example.com",
                                     "begin_datetime": "2024-05-30T10:37:34",
                                     "end_datetime": "2024-05-31T10:37:34"
                                 }
@@ -115,14 +114,13 @@ async def read_specific_events_by_owner_email(
                                 "example": {
                                     "company_name": "Maintenance Lda.",
                                     "property_id": "1",
-                                    "owner_email": "user@example.com",
                                     "begin_datetime": "2024-05-30T10:37:34",
                                     "end_datetime": "2024-05-31T10:37:34"
                                 }
                             }
                         }
                     }
-                },            )
+                })
 async def create_management_event(
         event_data: Cleaning | Maintenance = Depends(InitializeEventWithOwnerEmail()),
         event_model: models.Cleaning | models.Maintenance = Depends(get_management_event_model),
@@ -152,11 +150,25 @@ async def create_management_event(
                 responses={
                     status.HTTP_404_NOT_FOUND: {
                         "description": "Specified event for updating does not exist.",
-                        "content": {"application/json": {"example": {"detail": "Specified event for updating does not exist."}}}
+                        "content": {"application/json": {"example": {"detail": "Event of type cleaning with id 0 not found for email user@example.com."}}}
                     },
                     status.HTTP_409_CONFLICT: {
                         "description": "There are overlapping events with the given interval for the event to be updated.",
-                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the given interval for the event to be updated."}}}
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event with begin_datetime 2024-03-21T11:00:00 and end_datetime 2024-03-21T12:00:00."}}}
+                    }
+                },
+                openapi_extra={
+                    "requestBody": {
+                        "required": "true",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "begin_datetime": "2024-03-21T11:00:00",
+                                    "end_datetime": "2024-03-21T12:00:00",
+                                    "worker_name": "John Doe"
+                                }
+                            }
+                        }
                     }
                 })
 @api_router.put("/management/maintenance/{event_id}", response_model=MaintenanceWithId, status_code=status.HTTP_200_OK,
@@ -166,11 +178,25 @@ async def create_management_event(
                 responses={
                     status.HTTP_404_NOT_FOUND: {
                         "description": "Specified event for updating does not exist.",
-                        "content": {"application/json": {"example": {"detail": "Specified event for updating does not exist."}}}
+                        "content": {"application/json": {"example": {"detail": "Event of type maintenance with id 0 not found for email user@example.com."}}}
                     },
                     status.HTTP_409_CONFLICT: {
                         "description": "There are overlapping events with the given time interval for the event to be updated.",
-                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the given time interval for the event to be updated."}}}
+                        "content": {"application/json": {"example": {"detail": "There are overlapping events with the event with begin_datetime 2024-03-21T11:00:00 and end_datetime 2024-03-21T12:00:00."}}}
+                    }
+                },
+                openapi_extra={
+                    "requestBody": {
+                        "required": "true",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "begin_datetime": "2024-03-21T11:00:00",
+                                    "end_datetime": "2024-03-21T12:00:00",
+                                    "company_name": "John Doe's Company"
+                                }
+                            }
+                        }
                     }
                 })
 async def update_event(
