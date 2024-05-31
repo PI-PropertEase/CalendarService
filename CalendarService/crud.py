@@ -5,12 +5,21 @@ from sqlalchemy import or_, and_
 from sqlalchemy import update
 from CalendarService import models
 from CalendarService.schemas import Reservation, BaseEvent, Cleaning, BaseEventWithId
+from fastapi_mail import FastMail, MessageSchema, MessageType
+from CalendarService import email_config
+from fastapi import HTTPException
 
 
-def get_all_events_by_owner_email(db: Session, owner_email: str):
+def get_all_events_by_owner_email_and_filter_reservations_by_status(
+        db: Session, owner_email: str, reservation_status: models.ReservationStatus):
     # include columns for all mapped subclasses
     model = with_polymorphic(models.BaseEvent, "*")
-    return db.query(model).filter(models.BaseEvent.owner_email == owner_email).all()
+    return db.query(model).filter(and_(
+        models.BaseEvent.owner_email == owner_email,
+        or_(
+            models.BaseEvent.type != "reservation",
+            models.Reservation.reservation_status == reservation_status
+        ))).all()
 
 
 def get_specific_events_by_owner_email(db: Session, owner_email: str, EventClass):
@@ -21,6 +30,13 @@ def get_specific_events_by_owner_email_and_property_id(db: Session, owner_email:
     return db.query(EventClass).filter(and_(
         models.BaseEvent.owner_email == owner_email,
         models.BaseEvent.property_id == property_id
+    )).all()
+
+
+def get_confirmed_reservations_by_property_id(db: Session, property_id: int):
+    return db.query(models.Reservation).filter(and_(
+        models.Reservation.property_id == property_id,
+        models.Reservation.reservation_status == models.ReservationStatus.CONFIRMED
     )).all()
 
 
@@ -173,3 +189,38 @@ def there_are_overlapping_events_excluding_updating_event(db: Session, updating_
                 )
             )
         )).count() > 0
+
+
+def add_to_email_property_id_mapping(db: Session, email: str, property_id: int):
+    db_email_property_id_mapping = db.query(models.EmailPropertyIdMapping).get(email)
+    if db_email_property_id_mapping is None:
+        db_email_property_id_mapping = models.EmailPropertyIdMapping(email=email, properties_ids=[property_id])
+        db.add(db_email_property_id_mapping)
+    else:
+        db_email_property_id_mapping.properties_ids.append(property_id)
+    db.commit()
+
+
+def get_property_ids_by_email(db: Session, email: str) -> list[int]:
+    db_email_property_id_mapping = db.query(models.EmailPropertyIdMapping).get(email)
+    return db_email_property_id_mapping.properties_ids if db_email_property_id_mapping is not None else []
+
+
+async def send_email_to_reservation_client(db: Session, key: str, reservation: Reservation):
+    print(f"Sending email to reservation {reservation.id}'s client: {reservation.client_email}")
+
+    message = MessageSchema(
+        subject=f"Key to open the door for your reservation from {reservation.begin_datetime} to {reservation.end_datetime}.",
+        recipients=[reservation.client_email],
+        body=email_config.template.substitute({
+            "client_name": reservation.client_name,
+            "key": key,
+            "begin_time": reservation.begin_datetime,
+            "end_time": reservation.end_datetime
+        }),
+        subtype=MessageType.html)
+
+    fm = FastMail(email_config.conf)
+    await fm.send_message(message)
+
+

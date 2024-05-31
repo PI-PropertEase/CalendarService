@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 from fastapi import HTTPException
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, EmailStr, model_validator
+from pydantic import BaseModel, EmailStr, model_validator, Field
 from pydantic_core import ValidationError
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
@@ -125,7 +125,7 @@ class UniformEventWithId(BaseModel):
     owner_email: EmailStr
     begin_datetime: datetime
     end_datetime: datetime
-    type: str
+    type: str = Field(examples=["cleaning", "maintenance", "reservation"])
     service: Optional[Service] = None
 
 
@@ -143,17 +143,24 @@ class ManagementEventWithId(BaseEventWithId):
 
 
 class CleaningWithId(ManagementEventWithId):
+    type: str = Field(examples=["cleaning"])
     worker_name: str
 
 
 class MaintenanceWithId(ManagementEventWithId):
+    type: str = Field(examples=["maintenance"])
     company_name: str
 
 
 class ReservationWithId(BaseEventWithId):
+    type: str = Field(examples=["reservation"])
     service: Service
     reservation_status: ReservationStatus
     client_email: EmailStr
     client_name: str
     client_phone: PhoneNumber
     cost: float
+
+
+class KeyInput(BaseModel):
+    key: str

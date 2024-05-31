@@ -1,12 +1,19 @@
 from sqlalchemy import Column, Integer, String, DateTime, Enum, Float, ForeignKey, Boolean
 from enum import Enum as EnumType
 from .database import Base
-
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.ext.mutable import MutableList
 
 class Service(EnumType):
     ZOOKING = "zooking"
     EARTHSTAYIN = "earthstayin"
     CLICKANDGO = "clickandgo"
+
+
+class EmailPropertyIdMapping(Base):
+    __tablename__ = "email_property_id_mapping"
+    email = Column(String, primary_key=True)
+    properties_ids = Column(MutableList.as_mutable(ARRAY(Integer)))
 
 
 class BaseEvent(Base):
@@ -30,6 +37,7 @@ class InternalEvent(BaseEvent):
         # polymorphic_identity will be overwritten by the subclasses
     }
     id = Column(Integer, ForeignKey("base_event.id"), primary_key=True)
+
 
 class ExternalEvent(BaseEvent):
     __tablename__ = "external_event"

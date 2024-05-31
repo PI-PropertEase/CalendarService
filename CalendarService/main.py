@@ -22,7 +22,15 @@ async def lifespan(app: FastAPI):
 cred = credentials.Certificate(".secret.json")
 firebase_admin.initialize_app(cred)
 models.Base.metadata.create_all(bind=engine)
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan, 
+    root_path="/api/CalendarService",
+    title="CalendarService",
+    description="The Calendar Service exposes many endpoints for manipulating data displayed in the calendar, \
+    including reservations and cleaning/maintenance (management) events. It also allows users to handle key management for \
+    their properties. All events endpoints require authorization, verified by the Authorization bearer token.",
+    version="1.0.0"
+)
 
 # CORS setup
 app.add_middleware(
